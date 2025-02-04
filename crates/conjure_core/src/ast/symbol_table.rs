@@ -376,12 +376,16 @@ impl SymbolTable {
                 Domain::BoolDomain => Some(ReturnType::Bool),
                 Domain::IntDomain(_) => Some(ReturnType::Int),
                 Domain::DomainReference(ref n) => self.type_of(n),
+                // TODO: see below RECORD FORK
+                Domain::DomainRecord(_) | Domain::DomainVariant(_) => todo!() 
             },
             SymbolKind::ValueLetting(expr) => expr.return_type(),
             SymbolKind::DomainLetting(domain) => match domain {
                 Domain::BoolDomain => Some(ReturnType::Bool),
                 Domain::IntDomain(_) => Some(ReturnType::Int),
                 Domain::DomainReference(ref n) => self.type_of(n),
+                // TODO: what type do records and variants return? RECORD FORK
+                Domain::DomainRecord(_) | Domain::DomainVariant(_) => todo!() 
             },
         }
     }

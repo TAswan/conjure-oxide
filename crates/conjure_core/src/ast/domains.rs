@@ -18,6 +18,8 @@ pub enum Domain {
     BoolDomain,
     IntDomain(Vec<Range<i32>>),
     DomainReference(Name),
+    DomainRecord(Vec<Domain>),
+    DomainVariant(Vec<Domain>)
 }
 
 impl Domain {
@@ -80,6 +82,8 @@ impl Display for Domain {
                 }
             }
             Domain::DomainReference(name) => write!(f, "{}", name),
+            // TODO: how to print record nicely?
+            &Domain::DomainRecord(_) | &Domain::DomainVariant(_) => todo!()
         }
     }
 }

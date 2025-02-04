@@ -56,6 +56,8 @@ impl Display for DecisionVariable {
                 Ok(())
             }
             Domain::DomainReference(name) => write!(f, "{}", name),
+            // TODO, how to print nicely? RECORD FORK
+            Domain::DomainRecord(_) | Domain::DomainVariant(_) => todo!()
         }
     }
 }
