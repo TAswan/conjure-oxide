@@ -190,9 +190,7 @@ fn parse_domain(domain_name: &str, domain_value: &JsonValue) -> Result<Domain> {
                     Ok(parse_int_domain(domain.1)?)
                 }
                 "DomainBool" => Ok(Domain::BoolDomain),
-                _ => Err(Error::Parse(
-                    "FindOrGiven[2] is an unknown object".to_owned(),
-                )),
+                _ => throw_error!("FindOrGiven[2] is an unknown object"),
             }?;
             print!("{:?}", domain);
             Ok(Domain::DomainSet(SetAttr::None, Box::new(domain)))
@@ -239,12 +237,54 @@ fn parse_domain(domain_name: &str, domain_value: &JsonValue) -> Result<Domain> {
 
             Ok(Domain::DomainMatrix(Box::new(value_domain), index_domains))
         }
+        "DomainVariant" => {
+            let arr = domain_value
+                .as_array()
+                .ok_or(error!("DomainVariant is not an array"))?;
+            let mut domains = Vec::new();
+            for domain in arr.iter() {
+                let domain = domain[1]
+                    .as_object()
+                    .ok_or(error!("DomainVariant contains a non-object"))?
+                    .iter()
+                    .next()
+                    .ok_or(error!("DomainVariant contains an empty object"))?;
+                let domain = parse_domain(domain.0, domain.1)?;
+                domains.push(domain);
+            }
+            Ok(Domain::VariantDomain(domains))
+        }
+        "DomainRecord" => {
+            let arr = domain_value
+                .as_array()
+                .ok_or(error!("DomainRecord is not an array"))?;
+            let mut domains = Vec::new();
+            for domain in arr.iter() {
+                // currently name doesn't get used, but once we start saving the items in the record as declarations, we will need it, although probably not in this form or function
+                let name = domain[0]
+                    .as_object()
+                    .ok_or(error!("DomainRecord[0] is not an object"))?["Name"]
+                    .as_str()
+                    .ok_or(error!("DomainRecord[0].Name is not a string"))?;
+               
 
-        _ => Err(Error::Parse(
-            "FindOrGiven[2] is an unknown object".to_owned(), // consider covered
-        )),
+                let domain = domain[1]
+                    .as_object()
+                    .ok_or(error!("DomainRecord contains a non-object"))?
+                    .iter()
+                    .next()
+                    .ok_or(error!("DomainRecord contains an empty object"))?;
+               
+                let domain = parse_domain(domain.0, domain.1)?;
+                domains.push(domain);
+            }
+            Ok(Domain::RecordDomain(domains))
+        }
+
+        _ =>throw_error!("FindOrGiven[2] is an unknown object"), //consider covered
     }
 }
+
 
 fn parse_int_domain(v: &JsonValue) -> Result<Domain> {
     let mut ranges = Vec::new();

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{write, Display};
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -33,6 +33,8 @@ pub enum Domain {
     DomainSet(SetAttr, Box<Domain>),
     /// A n-dimensional matrix with a value domain and n-index domains
     DomainMatrix(Box<Domain>, Vec<Domain>),
+    VariantDomain(Vec<Domain>),
+    RecordDomain(Vec<Domain>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -84,9 +86,7 @@ impl Domain {
 impl Display for Domain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Domain::BoolDomain => {
-                write!(f, "bool")
-            }
+            Domain::BoolDomain => write!(f, "bool"),
             Domain::IntDomain(vec) => {
                 let mut domain_ranges: Vec<String> = vec![];
                 for range in vec {
@@ -103,9 +103,7 @@ impl Display for Domain {
                 }
             }
             Domain::DomainReference(name) => write!(f, "{}", name),
-            Domain::DomainSet(_, domain) => {
-                write!(f, "set of ({})", domain)
-            }
+            Domain::DomainSet(_, domain) => write!(f, "set of ({})", domain),
             Domain::DomainMatrix(value_domain, index_domains) => {
                 write!(
                     f,
@@ -113,6 +111,8 @@ impl Display for Domain {
                     pretty_vec(&index_domains.iter().collect_vec())
                 )
             }
+            Domain::VariantDomain(domains) => write!(f, "variant of ({})", pretty_vec(domains)),
+            Domain::RecordDomain(domains) => write!(f, "record of ({})", pretty_vec(domains)),
         }
     }
 }

@@ -24,6 +24,8 @@ pub enum Literal {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AbstractLiteral<T: Uniplate + Biplate<AbstractLiteral<T>> + Biplate<T>> {
     Set(Vec<T>),
+    Record(Vec<T>),
+    Variant(Vec<T>),
 
     /// A 1 dimensional matrix slice with an index domain.
     Matrix(Vec<T>, Domain),
@@ -43,6 +45,14 @@ where
                 let elems_str: String = elems.iter().map(|x| format!("{x}")).join(",");
                 write!(f, "[{elems_str};{index_domain}]")
             }
+            AbstractLiteral::Record(items) => {
+                let elems_str: String = items.iter().map(|x| format!("{x}")).join(",");
+                write!(f, "{{{elems_str}}}")
+            }
+            AbstractLiteral::Variant(items) => {
+                let elems_str: String = items.iter().map(|x| format!("{x}")).join(",");
+                write!(f, "{{{elems_str}}}")
+            }
         }
     }
 }
@@ -58,6 +68,14 @@ impl Hash for AbstractLiteral<Literal> {
                 1.hash(state);
                 elems.hash(state);
                 index_domain.hash(state);
+            }
+            AbstractLiteral::Record(items) => {
+                2.hash(state);
+                items.hash(state);
+            }
+            AbstractLiteral::Variant(items) => {
+                3.hash(state);
+                items.hash(state);
             }
         }
     }
@@ -82,6 +100,20 @@ where
                     Box::new(move |x| AbstractLiteral::Matrix(f1_ctx(x), index_domain.clone())),
                 )
             }
+            AbstractLiteral::Record(items) => {
+                let (f1_tree, f1_ctx) = <_ as Biplate<AbstractLiteral<T>>>::biplate(items);
+                (
+                    f1_tree,
+                    Box::new(move |x| AbstractLiteral::Record(f1_ctx(x))),
+                )
+            }
+            AbstractLiteral::Variant(items) => {
+                let (f1_tree, f1_ctx) = <_ as Biplate<AbstractLiteral<T>>>::biplate(items);
+                (
+                    f1_tree,
+                    Box::new(move |x| AbstractLiteral::Variant(f1_ctx(x))),
+                )
+            }
         }
     }
 }
@@ -104,6 +136,20 @@ where
                 (
                     f1_tree,
                     Box::new(move |x| AbstractLiteral::Matrix(f1_ctx(x), index_domain.clone())),
+                )
+            }
+            AbstractLiteral::Record(items) => {
+                let (f1_tree, f1_ctx) = <_ as Biplate<To>>::biplate(items);
+                (
+                    f1_tree,
+                    Box::new(move |x| AbstractLiteral::Record(f1_ctx(x))),
+                )
+            }
+            AbstractLiteral::Variant(items) => {
+                let (f1_tree, f1_ctx) = <_ as Biplate<To>>::biplate(items);
+                (
+                    f1_tree,
+                    Box::new(move |x| AbstractLiteral::Variant(f1_ctx(x))),
                 )
             }
         }
