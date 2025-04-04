@@ -1708,7 +1708,7 @@
             </div>
             <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">        cmd.mut_meta(|m| *m += 1);</pre>
+                <pre class="has-background-success-light py-0 px-2">        cmd.mut_meta(Box::new(|m: &amp;mut u32| *m += 1));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -3281,9 +3281,11 @@
         </div></div>
 </div>
         <footer class="footer">
-            <div class="content has-text-centered">
-                <p class="heading">Date: 2025-03-10 17:30</p>
-            </div>
+            
+                <div class="content has-text-centered">
+                    <p class="heading">Date: 2025-04-04 16:10</p>
+                </div>
+            
         </footer>
     </body>
 </html>
